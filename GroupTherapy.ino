@@ -6,9 +6,17 @@ byte personality = INTROVERT;
 bool success = false;
 
 Timer phaseTimer;
-#define WAIT_PHASE_TIME 3000
+#define WAIT_PHASE_TIME 4000
 #define PLAY_PHASE_TIME 4000
 #define RESULT_PHASE_TIME 5000
+
+#define INTROVERT_HUE 195
+#define INTROVERT_SAT 200
+#define EXTROVERT_HUE 15
+#define EXTROVERT_SAT 150
+
+Timer flickerTimer;
+#define FLICKER_DURATION 50
 
 void setup() {
   // put your setup code here, to run once:
@@ -35,22 +43,17 @@ void loop() {
   //temp display
   switch (phase) {
     case WAIT:
-      setColor(dim(WHITE, 100));
+      waitDisplay();
       break;
     case PLAY:
-      setColor(CYAN);
       if (personality == INTROVERT) {
-        setColor(BLUE);
+        setColor(makeColorHSB(INTROVERT_HUE, INTROVERT_SAT, 255));
       } else {//EXTROVERT
-        setColor(MAGENTA);
+        setColor(makeColorHSB(EXTROVERT_HUE, EXTROVERT_SAT, 255));
       }
       break;
     case RESULT:
-      if (success == true) {
-        setColor(WHITE);
-      } else {
-        setColor(RED);
-      }
+      resultDisplay();
       break;
   }
 }
@@ -105,8 +108,59 @@ bool phaseTriggered(byte nextPhase) {
   return triggered;
 }
 
+void waitDisplay() {
+  if (flickerTimer.isExpired()) {
+    FOREACH_FACE(f) {
+      //byte baseBrightness = 150 - map(phaseTimer.getRemaining(), 0, WAIT_PHASE_TIME, 0, 100);
+      byte baseBrightness = map(phaseTimer.getRemaining(), 0, WAIT_PHASE_TIME, 0, 150);
+      setColorOnFace(dim(WHITE, random(50) + random(50) + baseBrightness), f);
+
+      if (random(20) == 0) {//rare event
+        if (random(1) == 0) {
+          setColorOnFace(makeColorHSB(EXTROVERT_HUE, EXTROVERT_SAT, 255), f);
+        } else {
+          setColorOnFace(makeColorHSB(INTROVERT_HUE, INTROVERT_SAT, 255), f);
+        }
+      }
+    }
+
+    //determine new flicker time
+    int flickerTime = map(phaseTimer.getRemaining(), 0, WAIT_PHASE_TIME, 0, FLICKER_DURATION);
+    flickerTimer.set(flickerTime);
+  }
+}
+
+
+#define SPIN_DURATION 350
+
+void resultDisplay() {
+
+  byte personalitySaturation = EXTROVERT_SAT;
+  byte personalityHue = EXTROVERT_HUE;
+  if (personality == INTROVERT) {
+    personalitySaturation = INTROVERT_SAT;
+    personalityHue = INTROVERT_HUE;
+  }
+
+  if (success) {
+    FOREACH_FACE(f) {
+      int cycleOffset = (SPIN_DURATION / 6) * f;
+      int cyclePosition = (millis() + cycleOffset) % SPIN_DURATION;
+      byte faceSaturation = map(cyclePosition, 0, SPIN_DURATION, 0, personalitySaturation);
+
+      setColorOnFace(makeColorHSB(personalityHue, faceSaturation, 255), f);
+    }
+  } else {//failure
+    byte redFace = (millis() % SPIN_DURATION) / (SPIN_DURATION / 6);
+    setColor(makeColorHSB(personalityHue, personalitySaturation, 255));
+    setColorOnFace(RED, redFace);
+    setColorOnFace(RED, (redFace + 1) % 6);
+    setColorOnFace(RED, (redFace + 2) % 6);
+  }
+}
+
 byte getPhase(byte data) {
-  return ((data > 1) & 3);
+  return ((data >> 1) & 3);
 }
 
 byte getPersonality(byte data) {
