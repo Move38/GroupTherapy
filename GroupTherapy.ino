@@ -18,6 +18,9 @@ Timer phaseTimer;
 Timer flickerTimer;
 #define FLICKER_DURATION 50
 
+Timer pulseTimer;
+#define PULSE_DURATION 500
+
 void setup() {
   // put your setup code here, to run once:
   phaseTimer.set(WAIT_PHASE_TIME);
@@ -79,6 +82,7 @@ void playLoop() {
     }
     phaseTimer.set(RESULT_PHASE_TIME);
     phase = RESULT;
+    pulseTimer.set(PULSE_DURATION);
   }
 }
 
@@ -151,11 +155,32 @@ void resultDisplay() {
       setColorOnFace(makeColorHSB(personalityHue, faceSaturation, 255), f);
     }
   } else {//failure
-    byte redFace = (millis() % SPIN_DURATION) / (SPIN_DURATION / 6);
-    setColor(makeColorHSB(personalityHue, personalitySaturation, 255));
-    setColorOnFace(RED, redFace);
-    setColorOnFace(RED, (redFace + 1) % 6);
-    setColorOnFace(RED, (redFace + 2) % 6);
+    if (pulseTimer.isExpired()) {
+      pulseTimer.set(PULSE_DURATION);
+    }
+
+    byte progress = map(pulseTimer.getRemaining(), 0, PULSE_DURATION, 0, 255);
+    byte progressSin = sin8_C(progress);
+    byte hueMap = 0;
+    byte satMap = 0;
+    if (personality == INTROVERT) {
+      hueMap = map(progressSin, 0, 255, INTROVERT_HUE, 255);
+      satMap = map(progressSin, 0, 255, INTROVERT_SAT, 255);
+    } else {
+      hueMap = map(progressSin, 0, 255, 0, EXTROVERT_HUE);
+      satMap = map(progressSin, 0, 255, EXTROVERT_SAT, 255);
+    }
+
+    setColor(makeColorHSB(hueMap, satMap, 255));
+
+    //create the hue shift
+    //for introverts, it's X - 255
+    //for extroverts, it's x - 0
+    //    byte redFace = (millis() % SPIN_DURATION) / (SPIN_DURATION / 6);
+    //    setColor(makeColorHSB(personalityHue, personalitySaturation, 255));
+    //    setColorOnFace(RED, redFace);
+    //    setColorOnFace(RED, (redFace + 1) % 6);
+    //    setColorOnFace(RED, (redFace + 2) % 6);
   }
 }
 
