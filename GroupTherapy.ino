@@ -24,6 +24,7 @@ Timer flickerTimer;
 
 void setup() {
   // put your setup code here, to run once:
+  randomize();
   phaseTimer.set(WAIT_PHASE_TIME);
 }
 
@@ -63,7 +64,33 @@ void loop() {
 }
 
 void waitLoop() {
-  //do game of life
+
+  //determine neighborhood
+  byte extrovertNeighbors = 0;
+  byte introvertNeighbors = 0;
+  FOREACH_FACE(f) {
+    if (!isValueReceivedOnFaceExpired(f)) {//neighbor!
+      byte neighborPersonality = getPersonality(getLastValueReceivedOnFace(f));
+      if (neighborPersonality == INTROVERT) {
+        introvertNeighbors++;
+      } else if (neighborPersonality = EXTROVERT) {
+        extrovertNeighbors++;
+      }
+    }
+  }
+  //  if (personality == INTROVERT) {
+  //    introvertNeighbors++;
+  //  } else if (personality == EXTROVERT) {
+  //    extrovertNeighbors++;
+  //  }
+
+  //change personality based on this information
+  if (introvertNeighbors > extrovertNeighbors) {
+    personality = EXTROVERT;
+  } else if (extrovertNeighbors > introvertNeighbors) {
+    personality = INTROVERT;
+  }
+
   //listen for the next phase being triggered
   if (phaseTriggered(PLAY) || phaseTimer.isExpired()) {
     phaseTimer.set(PLAY_PHASE_TIME);
