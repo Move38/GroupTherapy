@@ -16,10 +16,11 @@ Timer phaseTimer;
 #define EXTROVERT_SAT 150
 
 Timer flickerTimer;
-#define FLICKER_DURATION 50
+#define FLICKER_DURATION 75
+#define WAIT_PHASE_COLOR_CHANCE 500
 
-Timer pulseTimer;
-#define PULSE_DURATION 500
+//Timer pulseTimer;
+//#define PULSE_DURATION 500
 
 void setup() {
   // put your setup code here, to run once:
@@ -82,7 +83,7 @@ void playLoop() {
     }
     phaseTimer.set(RESULT_PHASE_TIME);
     phase = RESULT;
-    pulseTimer.set(PULSE_DURATION);
+    //pulseTimer.set(PULSE_DURATION);
   }
 }
 
@@ -115,11 +116,15 @@ bool phaseTriggered(byte nextPhase) {
 void waitDisplay() {
   if (flickerTimer.isExpired()) {
     FOREACH_FACE(f) {
-      //byte baseBrightness = 150 - map(phaseTimer.getRemaining(), 0, WAIT_PHASE_TIME, 0, 100);
-      byte baseBrightness = map(phaseTimer.getRemaining(), 0, WAIT_PHASE_TIME, 0, 150);
-      setColorOnFace(dim(WHITE, random(50) + random(50) + baseBrightness), f);
+      //      //byte baseBrightness = 150 - map(phaseTimer.getRemaining(), 0, WAIT_PHASE_TIME, 0, 100);
+      //      byte baseBrightness = map(phaseTimer.getRemaining(), 0, WAIT_PHASE_TIME, 0, 150);
+      //      setColorOnFace(dim(WHITE, random(50) + random(50) + baseBrightness), f);
 
-      if (random(20) == 0) {//rare event
+      setColorOnFace(dim(WHITE, random(50) + random(50) + 155), f);
+
+      int colorChance = WAIT_PHASE_COLOR_CHANCE - map(phaseTimer.getRemaining(), 0, WAIT_PHASE_TIME, 0, WAIT_PHASE_COLOR_CHANCE);
+
+      if (random(WAIT_PHASE_COLOR_CHANCE) < colorChance) {//increasingly common event
         if (random(1) == 0) {
           setColorOnFace(makeColorHSB(EXTROVERT_HUE, EXTROVERT_SAT, 255), f);
         } else {
@@ -155,32 +160,27 @@ void resultDisplay() {
       setColorOnFace(makeColorHSB(personalityHue, faceSaturation, 255), f);
     }
   } else {//failure
-    if (pulseTimer.isExpired()) {
-      pulseTimer.set(PULSE_DURATION);
-    }
 
-    byte progress = map(pulseTimer.getRemaining(), 0, PULSE_DURATION, 0, 255);
-    byte progressSin = sin8_C(progress);
-    byte hueMap = 0;
-    byte satMap = 0;
-    if (personality == INTROVERT) {
-      hueMap = map(progressSin, 0, 255, INTROVERT_HUE, 255);
-      satMap = map(progressSin, 0, 255, INTROVERT_SAT, 255);
-    } else {
-      hueMap = map(progressSin, 0, 255, 0, EXTROVERT_HUE);
-      satMap = map(progressSin, 0, 255, EXTROVERT_SAT, 255);
-    }
+    setColor(RED);
 
-    setColor(makeColorHSB(hueMap, satMap, 255));
+    //    if (pulseTimer.isExpired()) {
+    //      pulseTimer.set(PULSE_DURATION);
+    //    }
+    //
+    //    byte progress = map(pulseTimer.getRemaining(), 0, PULSE_DURATION, 0, 255);
+    //    byte progressSin = sin8_C(progress);
+    //    byte hueMap = 0;
+    //    byte satMap = 0;
+    //    if (personality == INTROVERT) {
+    //      hueMap = map(progressSin, 0, 255, INTROVERT_HUE, 255);
+    //      satMap = map(progressSin, 0, 255, INTROVERT_SAT, 255);
+    //    } else {
+    //      hueMap = map(progressSin, 0, 255, 0, EXTROVERT_HUE);
+    //      satMap = map(progressSin, 0, 255, EXTROVERT_SAT, 255);
+    //    }
+    //
+    //    setColor(makeColorHSB(hueMap, satMap, 255));
 
-    //create the hue shift
-    //for introverts, it's X - 255
-    //for extroverts, it's x - 0
-    //    byte redFace = (millis() % SPIN_DURATION) / (SPIN_DURATION / 6);
-    //    setColor(makeColorHSB(personalityHue, personalitySaturation, 255));
-    //    setColorOnFace(RED, redFace);
-    //    setColorOnFace(RED, (redFace + 1) % 6);
-    //    setColorOnFace(RED, (redFace + 2) % 6);
   }
 }
 
