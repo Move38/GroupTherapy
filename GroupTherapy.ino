@@ -53,7 +53,11 @@ void loop() {
       break;
     case PLAY:
       if (personality == INTROVERT) {
-        setColor(makeColorHSB(INTROVERT_HUE, INTROVERT_SAT, 255));
+        setColor(OFF);
+        byte offset = (millis() % 400) / 201;
+        setColorOnFace(makeColorHSB(INTROVERT_HUE, INTROVERT_SAT, 255), 1 - offset);
+        setColorOnFace(makeColorHSB(INTROVERT_HUE, INTROVERT_SAT, 255), 3 - offset);
+        setColorOnFace(makeColorHSB(INTROVERT_HUE, INTROVERT_SAT, 255), 5 - offset);
       } else {//EXTROVERT
         setColor(makeColorHSB(EXTROVERT_HUE, EXTROVERT_SAT, 255));
       }
