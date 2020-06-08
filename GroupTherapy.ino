@@ -94,19 +94,25 @@ void waitLoop() {
   }
 
   //change personality based on this information
-  if (neighborTotal > 2) { //This neighborhood is big enough to change
-    //how many introverts should there be?
-    byte introvertsNeeded = (neighborTotal * INTROVERT_CHANCE) / 100;
-    if (introvertsNeeded == 0) {
-      introvertsNeeded = 1;
-    }
-
-    if (introvertNeighbors > introvertsNeeded) {
-      personality = EXTROVERT;
-    } else if (introvertNeighbors < introvertsNeeded) {
-      personality = INTROVERT;
-    }
+  if(random(1) == 0) {
+    personality = EXTROVERT;
   }
+  else {
+    personality = INTROVERT;
+  }
+//  if (neighborTotal > 2) { //This neighborhood is big enough to change
+//    //how many introverts should there be?
+//    byte introvertsNeeded = (neighborTotal * INTROVERT_CHANCE) / 100;
+//    if (introvertsNeeded == 0) {
+//      introvertsNeeded = 1;
+//    }
+//
+//    if (introvertNeighbors > introvertsNeeded) {
+//      personality = EXTROVERT;
+//    } else if (introvertNeighbors < introvertsNeeded) {
+//      personality = INTROVERT;
+//    }
+//  }
 
   //listen for the next phase being triggered
   if (phaseTriggered(PLAY) || phaseTimer.isExpired()) {
